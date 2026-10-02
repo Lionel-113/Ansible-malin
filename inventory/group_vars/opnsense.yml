@@ -1,0 +1,30 @@
+---
+# Laisser à true uniquement pour un certificat autosigné (à éviter en production).
+opnsense_validate_certs: false
+
+# Les identifiants API sont definis de maniere chiffree et independante dans :
+# host_vars/<nom-du-firewall>/vault.yml
+
+# Ces alias sont crees sur tous les hotes du groupe "opnsense".
+# Chaque adresse devient une ligne du champ "Content" de l'alias OPNsense.
+opnsense_aliases_global:
+  - name: IP_PUB_LIONEL
+    description: "IP publiques Lionel"
+    content:
+      - 82.66.33.86
+  - name: IP_PUB_DANIEL
+    description: "IP publiques Daniel"
+    content:
+      - 83.228.241.150
+      - 2.56.215.74
+  - name: IP_PUB_SANDRINE
+    description: "IP publiques Sandrine"
+    content:
+      - 81.65.141.119
+      - 5.51.119.252
+      - 81.65.143.167
+
+
+
+
+

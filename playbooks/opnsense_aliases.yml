@@ -1,0 +1,7 @@
+---
+- name: Gerer les alias IP OPNsense
+  hosts: opnsense
+  connection: local
+  gather_facts: false
+  roles:
+    - role: opnsense_aliases

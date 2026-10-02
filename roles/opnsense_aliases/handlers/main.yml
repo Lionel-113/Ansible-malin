@@ -1,0 +1,17 @@
+---
+- name: Appliquer les alias OPNsense
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_base_url }}/api/firewall/alias/reconfigure"
+    method: POST
+    user: "{{ opnsense_api_key }}"
+    password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: "{{ opnsense_validate_certs }}"
+    body_format: json
+    body: {}
+    return_content: true
+    status_code: 200
+  register: opnsense_alias_apply
+  changed_when: false
+  failed_when:
+    - opnsense_alias_apply.json.status | default('failed') != 'ok'

@@ -1,0 +1,8 @@
+---
+opnsense_api_scheme: https
+opnsense_api_port: 443
+opnsense_api_base_url: "{{ opnsense_api_scheme }}://{{ ansible_host | default(inventory_hostname) }}:{{ opnsense_api_port }}"
+opnsense_validate_certs: true
+# Alias communs au groupe, puis alias supplementaires propres a chaque hote.
+opnsense_aliases_global: []
+opnsense_aliases: []

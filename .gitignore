@@ -1,0 +1,4 @@
+# Ne jamais versionner le mot de passe qui ouvre les fichiers Ansible Vault.
+.vault_pass
+
+*.retry

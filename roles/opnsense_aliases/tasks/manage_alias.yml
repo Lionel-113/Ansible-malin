@@ -1,0 +1,80 @@
+---
+- name: Rechercher l'alias {{ opnsense_alias.name }}
+  ansible.builtin.set_fact:
+    opnsense_current_alias: >-
+      {{
+        opnsense_alias_search.json.rows
+        | selectattr('name', 'equalto', opnsense_alias.name)
+        | list
+        | first
+        | default({}, true)
+      }}
+
+- name: Refuser la conversion d'un alias existant non-IP {{ opnsense_alias.name }}
+  ansible.builtin.assert:
+    that:
+      - opnsense_current_alias | length == 0 or opnsense_current_alias.type == 'host'
+    fail_msg: >-
+      L'alias {{ opnsense_alias.name }} existe deja mais son type est
+      {{ opnsense_current_alias.type | default('inconnu') }}. Sa conversion
+      automatique en alias IP est volontairement bloquee.
+
+- name: Creer l'alias IP {{ opnsense_alias.name }}
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_base_url }}/api/firewall/alias/addItem"
+    method: POST
+    user: "{{ opnsense_api_key }}"
+    password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: "{{ opnsense_validate_certs }}"
+    body_format: json
+    body:
+      alias:
+        name: "{{ opnsense_alias.name }}"
+        type: host
+        content: "{{ opnsense_alias.content | unique | join('\n') }}"
+        description: "{{ opnsense_alias.description | default('') }}"
+        enabled: "{{ '1' if opnsense_alias.enabled | default(true) else '0' }}"
+    return_content: true
+    status_code: 200
+  register: opnsense_alias_create
+  changed_when: true
+  failed_when:
+    - opnsense_alias_create.json.result is not defined
+    - opnsense_alias_create.json.result != 'saved'
+  when: opnsense_current_alias | length == 0
+  notify: Appliquer les alias OPNsense
+  no_log: true
+
+- name: Mettre a jour l'alias IP {{ opnsense_alias.name }}
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_base_url }}/api/firewall/alias/setItem/{{ opnsense_current_alias.uuid }}"
+    method: POST
+    user: "{{ opnsense_api_key }}"
+    password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: "{{ opnsense_validate_certs }}"
+    body_format: json
+    body:
+      alias:
+        # Le nom est toujours envoye : OPNsense l'utilise lors du refactoring.
+        name: "{{ opnsense_alias.name }}"
+        type: host
+        content: "{{ opnsense_alias.content | unique | join('\n') }}"
+        description: "{{ opnsense_alias.description | default('') }}"
+        enabled: "{{ '1' if opnsense_alias.enabled | default(true) else '0' }}"
+    return_content: true
+    status_code: 200
+  register: opnsense_alias_update
+  changed_when: true
+  failed_when:
+    - opnsense_alias_update.json.result is not defined
+    - opnsense_alias_update.json.result != 'saved'
+  when:
+    - opnsense_current_alias | length > 0
+    - >-
+      opnsense_current_alias.content != (opnsense_alias.content | unique | join('\n')) or
+      opnsense_current_alias.description != (opnsense_alias.description | default('')) or
+      opnsense_current_alias.enabled != ('1' if opnsense_alias.enabled | default(true) else '0')
+  notify: Appliquer les alias OPNsense
+  no_log: true

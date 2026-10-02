@@ -1,0 +1,61 @@
+---
+- name: Verifier les variables requises
+  ansible.builtin.assert:
+    that:
+      - opnsense_api_key is defined
+      - opnsense_api_secret is defined
+      - opnsense_aliases_global is iterable
+      - opnsense_aliases is iterable
+    fail_msg: >-
+      Definir opnsense_api_key, opnsense_api_secret et les listes d'alias
+      (voir inventory/group_vars/opnsense.yml.example).
+
+- name: Fusionner les alias communs et specifiques a l'hote
+  ansible.builtin.set_fact:
+    opnsense_managed_aliases: "{{ opnsense_aliases_global + opnsense_aliases }}"
+
+- name: Verifier la definition des alias IP
+  ansible.builtin.assert:
+    that:
+      - item.name is defined
+      - item.name is match('^[A-Za-z0-9_]+$')
+      - item.content is defined
+      - item.content is iterable
+      - item.content is not string
+      - item.content | length > 0
+      - item.content | select('string') | list | length == item.content | length
+    fail_msg: >-
+      Chaque alias doit avoir un nom compose de lettres, chiffres ou '_' et une
+      liste non vide d'adresses IP dans content.
+  loop: "{{ opnsense_managed_aliases }}"
+  loop_control:
+    label: "{{ item.name | default('alias sans nom') }}"
+
+- name: Verifier l'unicite des noms d'alias
+  ansible.builtin.assert:
+    that: >-
+      opnsense_managed_aliases | map(attribute='name') | list | unique | length
+      == opnsense_managed_aliases | length
+    fail_msg: Les noms parmi les alias communs et ceux de l'hote doivent etre uniques.
+
+- name: Recuperer les alias existants
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_base_url }}/api/firewall/alias/searchItem"
+    method: GET
+    user: "{{ opnsense_api_key }}"
+    password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: "{{ opnsense_validate_certs }}"
+    return_content: true
+    status_code: 200
+  register: opnsense_alias_search
+  changed_when: false
+  failed_when:
+    - opnsense_alias_search.json.rows is not defined
+
+- name: Creer ou mettre a jour les alias IP
+  ansible.builtin.include_tasks: manage_alias.yml
+  loop: "{{ opnsense_managed_aliases }}"
+  loop_control:
+    loop_var: opnsense_alias
+    label: "{{ opnsense_alias.name }}"

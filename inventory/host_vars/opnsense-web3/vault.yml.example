@@ -1,0 +1,4 @@
+---
+# Creer vault.yml avec ansible-vault create, puis remplacer ces valeurs.
+opnsense_api_key: "API_KEY_OPNSENSE_WEB3"
+opnsense_api_secret: "API_SECRET_OPNSENSE_WEB3"

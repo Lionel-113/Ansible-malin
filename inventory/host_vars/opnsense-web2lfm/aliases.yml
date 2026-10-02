@@ -1,0 +1,17 @@
+---
+# Alias de validation, geres uniquement sur opnsense-web2lfm.
+# Le WebGUI/API de ce firewall utilise actuellement un certificat autosigne.
+# Remplacer cette exception par un certificat de confiance des que possible.
+opnsense_validate_certs: false
+
+#opnsense_aliases:
+  # - name: test_alias
+  #   description: "Alias de test Ansible"
+  #   content:
+  #     - 1.2.3.4
+  # - name: test_alias2
+  #   description: "Alias de test Ansible"
+  #   content:
+  #     - 5.6.7.8
+  #     - 9.10.11.12
+
