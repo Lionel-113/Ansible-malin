@@ -16,7 +16,7 @@ opnsense_aliases_global:
     description: "IP publiques Daniel"
     content:
       - 83.228.241.150
-      - 2.56.215.74
+      - 2.56.215.168
   - name: IP_PUB_SANDRINE
     description: "IP publiques Sandrine"
     content:
