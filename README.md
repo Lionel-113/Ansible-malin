@@ -17,9 +17,18 @@ declarees dans `content` sont ecrites dans le champ **Content** de l'alias.
    les alias propres a un firewall dans `inventory/host_vars/<nom>/aliases.yml`.
    Puis verifier et appliquer :
 
+
+Depuis WSL 
+Modifier les routes par default qui sont en conflit avec les IP WSL : 
+
 ```bash
+
+
+sudo ip route replace 172.20.20.0/24 via 172.30.0.1 dev eth0
+sudo ip route replace 172.20.100.0/24 via 172.30.0.1 dev eth0
+
 ansible-playbook playbooks/opnsense_aliases.yml --check
-ansible-playbook playbooks/opnsense_aliases.yml
+ansible-playbook playbooks/opnsense_aliases.yml --ask-vault-password
 ```
 
 Le compte API doit disposer au minimum du droit `Firewall: Alias: Edit`.
